@@ -1,0 +1,13 @@
+{
+  "name": "knifejs",
+  "version": "1.0.0",
+  "description": "JavaScript AOP library",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aop"
+  ],
+  "author": "Brandon Fleming",
+  "homepage": "https://github.com/bflemi3/knife#readme"
+}
