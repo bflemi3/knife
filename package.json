@@ -9,5 +9,8 @@
     "aop"
   ],
   "author": "Brandon Fleming",
-  "homepage": "https://github.com/bflemi3/knife#readme"
+  "homepage": "https://github.com/bflemi3/knife#readme",
+  "dependencies": {
+    "requirejs": "^2.2.0"
+  }
 }
