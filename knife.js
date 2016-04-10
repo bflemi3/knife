@@ -9,36 +9,45 @@ define(['lib/interpolate'], function(str) {
         console.log(str.apply(null, arguments));
     }
 
-    function slice() {
-        return Array.prototype.slice.apply(null, arguments);
+    function slice(array) {
+        return Array.prototype.slice.apply(array);
     }
 
     knife.before = function(constructor, method, fn) {
-        var proto = function() {
+        var ctor = constructor;
 
-            var instance = proto.apply(this, arguments);
-            if(typeof this[method] !== 'function')
-                return warn("'{0}' does not exist within given constructor.", method);
+        function proxy() {
 
-            var impl = instance[method];
-            instance[method] = function() {
-                var args = slice(arguments),
-                    metadata = {
-                        arguments: args,
-                        impl: impl
-                    };
+            return function() {
+                var args = slice(arguments);
+                var instance = new (Function.prototype.bind.apply(ctor, [this].concat(args)));
+                if(typeof instance[method] !== 'function')
+                    return warn("'{0}' does not exist within given constructor.", method);
 
-                fn(metadata);
+                var impl = instance[method];
+                instance[method] = function() {
+                    var args = slice(arguments),
+                        metadata = {
+                            arguments: args,
+                            impl: impl
+                        };
+
+                    fn(metadata);
+                };
+                return instance;
             };
-            return instance;
-        };
+        }
 
-        proto.prototype = constructor.prototype;
+        proxy.prototype = constructor.prototype;
+        constructor.prototype = new proxy();
+        constructor.prototype.constructor = constructor;
 
-        var test = new proto('brandon');
-
-        constructor = proto;
-
+        //var proto = constructor.prototype;
+        //constructor = proxy;
+        //constructor.prototype = proto;
+        //return constructor;
+        //var test = new constructor('brandno');
+        //test.walk(5);
     };
 
 
