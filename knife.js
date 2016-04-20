@@ -1,5 +1,4 @@
 define(['lib/interpolate'], function(str) {
-    var knife = {};
 
     function warn() {
         console.warn(str.apply(null, arguments));
@@ -13,34 +12,64 @@ define(['lib/interpolate'], function(str) {
         return Array.prototype.slice.apply(array);
     }
 
+    function Proxy() {
+        this.base =
+    }
+
+    function knife(ctor) {
+        function Proxy() {
+            this.base = ctor;
+            this.metadata = {};
+
+            var args = slice(arguments),
+                instance = new (Function.prototype.bind.apply(this.base, [this].concat(args))),
+                impl;
+        }
+    }
+
+    knife.prototype.before = function(callback) {};
+
+    knife.prototyep.after = function(callback) {};
+
     knife.before = function(constructor, method, fn) {
-        var ctor = constructor;
+        var ctor = constructor[0];
 
-        function proxy() {
+        var wrap = { ctor: constructor };
 
-            return function() {
+        function Proxy() {
+            this.realConstructor = ctor;
+            this.metadata = {};
+
+            var args = slice(arguments),
+                instance = new (Function.prototype.bind.apply(this.realConstructor, [this].concat(args))),
+                impl;
+
+            if(typeof instance[method] !== 'function')
+                return warn("'{0}' does not exist within given constructor.", method);
+
+            impl = instance[method];
+            instance[method] = function() {
                 var args = slice(arguments);
-                var instance = new (Function.prototype.bind.apply(ctor, [this].concat(args)));
-                if(typeof instance[method] !== 'function')
-                    return warn("'{0}' does not exist within given constructor.", method);
-
-                var impl = instance[method];
-                instance[method] = function() {
-                    var args = slice(arguments),
-                        metadata = {
-                            arguments: args,
-                            impl: impl
-                        };
-
-                    fn(metadata);
+                this.metadata = {
+                    arguments: args,
+                    impl: impl
                 };
-                return instance;
+
+                fn(metadata);
             };
+            return instance;
         }
 
-        proxy.prototype = constructor.prototype;
-        constructor.prototype = new proxy();
-        constructor.prototype.constructor = constructor;
+        var oldProto = wrap.ctor.prototype;
+        wrap.ctor = Proxy;
+        wrap.ctor.prototype = oldProto;
+
+
+        //
+        //Proxy.prototype = constructor.prototype;
+        //
+        //constructor.prototype = new Proxy();
+        //constructor.prototype.constructor = proxy();
 
         //var proto = constructor.prototype;
         //constructor = proxy;
